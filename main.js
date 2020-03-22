@@ -5,19 +5,14 @@ const path = require('path')
 const { clipboard } = require('electron')
 const ks = require('node-key-sender');
 
-const { Sequelize } = require('sequelize');
+const db = require("./database")
 
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: 'canned_responses.sqlite'
-});
 
-try {
-  sequelize.authenticate();
-  console.log('Connection has been established successfully.');
-} catch (error) {
-  console.error('Unable to connect to the database:', error);
-}
+// setTimeout(() => {
+//   db.snippet.create({name: "Test2"})
+//   db.snippet.create({name: "Test3"})
+// }, 2000)
+
 
 let mainWindow
 
@@ -34,14 +29,16 @@ app.on('ready', () => {
     },
     
   })
-
+  
   // and load the index.html of the app.
   mainWindow.loadFile('contents/index.html')
+
+  mainWindow.on('show', function () {
+    console.log("test")
+  })
   
   // Register a 'CommandOrControl+X' shortcut listener.
   const ret = globalShortcut.register('alt+C', () => {
-    console.log('alt+C is pressed')
-
     mainWindow.show();
   })
 
@@ -66,10 +63,47 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
 
-ipcMain.on('helloSync', (event, args) => {
-  mainWindow.minimize();
-  pasteText("Ah, Perry the Platypus, what a wonderful surprise Now that you are trapped in this huge bat soup bowl, it is time to reveal my final creation. The Coofinator! \n Now you see, it all started when I was a little boy in the Hong Kong flu outbreak of 1969. \n The disease claimed a lot of lives and I thought to myself \"this is not fair, it attracted a lot of attention but it is not even that contagious, why people help those ching chongs instead of their own darn people?!\". \n Now with the power to spread coofona in the chingchong-state area, I will take my revenge on those chinese scumbags!");  
+
+
+ipcMain.on('paste-snippet', (event, args) => {
+  MinimizeWindow();
+  pasteText(args.body);  
 });
+
+ipcMain.on('copy-snippet', (event, args) => {
+  MinimizeWindow();
+  copyToClip(args.body);  
+});
+
+ipcMain.on('process-query', (event, args) => {
+  // Query the database, send back results
+});
+
+ipcMain.on('create-snippet', (event, args) => {
+  console.log(args)
+});
+
+ipcMain.on('update-snippet', (event, args) => {
+  // Query the database, send back results
+  console.log(args)
+});
+
+ipcMain.on('delete-snippet', (event, args) => {
+  // Query the database, send back results
+});
+
+ipcMain.on('close-window', (event, args) => {
+  MinimizeWindow();
+});
+
+function MinimizeWindow() {
+  mainWindow.minimize();
+  mainWindow.hide();
+}
+
+function copyToClip(text) {
+  clipboard.writeText(text);
+}
 
 function pasteText(text) {
   let curClip = clipboard.readText();
@@ -78,6 +112,5 @@ function pasteText(text) {
   ks.sendCombination(['control', 'v']).then(done => {
     // restore clipbloard
     clipboard.writeText(curClip)
-    console.log("Restored")
   })
 }
