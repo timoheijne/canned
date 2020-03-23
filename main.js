@@ -95,13 +95,20 @@ ipcMain.on('process-query', async (event, args) => {
   }
 });
 
-ipcMain.on('create-snippet', (event, args) => {
-  console.log(args)
+ipcMain.on('create-snippet', async (event, args) => {
+  await db.snippet.create({name: args.name, body: args.body});
+  mainWindow.webContents.send("reload-query")
 });
 
-ipcMain.on('update-snippet', (event, args) => {
-  // Query the database, send back results
-  console.log(args)
+ipcMain.on('update-snippet', async (event, args) => {
+  await db.snippet.update({name: args.name, body: args.body}, {
+    where: {
+      id: args.id 
+    },
+    attributes: ['id', 'name', 'body', 'uses']
+  });
+
+  mainWindow.webContents.send("reload-query")
 });
 
 ipcMain.on('delete-snippet', (event, args) => {

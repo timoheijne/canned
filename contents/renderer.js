@@ -17,6 +17,10 @@ ipc.on("list-items", (event, args) => {
     ProcessItems();
 })
 
+ipc.on("reload-query", (event, args) => {
+    ProcessSearch();
+})
+
 function handleInput(event) {
     console.log(event)
     if(event.keyCode == 13) { // enter pressed
@@ -92,7 +96,7 @@ function OnCreate(e) {
     }
     
     let reply = ipc.send('create-snippet', data);
-    $('#create-snippet').modal('hide')
+    CloseModals();
 }
 
 function OpenEdit(item) {
@@ -108,7 +112,7 @@ function OnEdit(e) {
     data.body =  $("#edit-body").val();
     
     let reply = ipc.send('update-snippet', data);
-    $('#edit-snippet').modal('hide')
+    CloseModals()
 }
 
 function DeleteItem(item) {
@@ -117,8 +121,13 @@ function DeleteItem(item) {
 
 function CreateDomElement(item) {
     html = $.parseHTML( template );
+
+    let body = item.body.substring(0,350);
+    if(item.body.length > 350)
+        body += "..."
+
     $(html).find("#Name").html(`#${item.id} - ${item.name}`)
-    $(html).find("#Body").text(item.body)
+    $(html).find("#Body").text(body)
     $list.append( html );
 }
 
