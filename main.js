@@ -16,7 +16,7 @@ app.on('ready', () => {
     show: false,
     resizable: false,
     frame: false,
-    icon: "clippy.png",
+    icon: "assets/clippy.png",
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
@@ -24,7 +24,7 @@ app.on('ready', () => {
     },
   })
 
-  tray = new Tray('clippy.png')
+  tray = new Tray('assets/clippy.png')
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Show', click: function() {
       mainWindow.show();
