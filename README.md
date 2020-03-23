@@ -13,7 +13,7 @@ Auto pasting without losing your previous clipboard.
 | ctrl + N   	| Create new snippet                 	|
 | ctrl + E   	| Edit selected snippet              	|
 | ctrl + D   	| Delete selected snippet            	|
-| Enter      	| Auto paste selected snipper        	|
+| Enter      	| Auto paste selected snippet        	|
 | ctrl + C   	| Copy selected snippet to clipboard 	|
 
 ## TODO
