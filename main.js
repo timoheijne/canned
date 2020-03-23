@@ -125,8 +125,6 @@ ipcMain.on('update-snippet', async (event, args) => {
 
 ipcMain.on('delete-snippet', async (event, args) => {
   // Query the database, send back results
-
-  console.log(args)
   await db.snippet.destroy({
     where: {
       id: args.id 

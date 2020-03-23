@@ -45,6 +45,8 @@ function handleInput(event) {
         }
         
     } else if (event.keyCode == 67 && event.ctrlKey) { // ctrl+C pressed
+        if(IsModalOpen()) return;
+        
         let reply = ipc.send('copy-snippet', items[selected]);
         $("#query-field").val("")
 
