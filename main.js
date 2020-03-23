@@ -1,6 +1,6 @@
 // Modules to control application life and create native browser window
 
-const {app, BrowserWindow, globalShortcut, ipcMain } = require('electron')
+const {app, BrowserWindow, globalShortcut, ipcMain, Menu, Tray  } = require('electron')
 const path = require('path')
 const { clipboard } = require('electron')
 const ks = require('node-key-sender');
@@ -15,13 +15,26 @@ app.on('ready', () => {
     height: 600,
     show: false,
     resizable: false,
+    frame: false,
+    icon: "clippy.png",
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       allowRunningInsecureContent: true,
     },
-    
   })
+
+  tray = new Tray('clippy.png')
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Show', click: function() {
+      mainWindow.show();
+    } },
+    { label: 'Quit', click: function() {
+      app.exit();
+    } },
+  ])
+  tray.setToolTip('Canned responses')
+  tray.setContextMenu(contextMenu)
 
   mainWindow.on('hide', function () {
     SendTopUsed()

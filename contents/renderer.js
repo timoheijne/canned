@@ -1,10 +1,9 @@
 const ipc = require('electron').ipcRenderer; 
 const template = "<a href=\"#\" class=\"list-group-item list-group-item-action\">  <div class=\"d-flex w-100 justify-content-between\"> <h6 class=\"mb-1\" id=\"Name\">Past due plugin installation <small id=\"Alias\">Alias 1, alias 2</small></h6> </div> <p class=\"mb-1\" id=\"Body\">Nam eget mi lacus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus vehicula urna augue, at semper metus rhoncus sed. Morbi sit amet leo vel libero luctus ornare ut non quam.</p> </a>";
 const empty = "<div class=\"d-flex justify-content-center\" style=\"width: 100%; margin-top: 100px;\"><div class=\"p-2\" style=\"font-size: 40px;\">¯\\_(ツ)_/¯</div> </div><div class=\"d-flex justify-content-center\" style=\"width: 100%;\"><div class=\"p-3\" style=\"font-size: 15px;\" id=\"enter-to-create\">Press ENTER to create a snippet with the name \"\"</div></div>"
+
 let $list = $( "#SelectionList" );
-
 let selected = 0;
-
 let items = []
 
 ipc.on("list-items", (event, args) => {
@@ -17,7 +16,6 @@ ipc.on("reload-query", (event, args) => {
 })
 
 function handleInput(event) {
-    console.log(event)
     if(event.keyCode == 13) { // enter pressed
         // if modal is open, enter should be handled differently!
 
@@ -173,9 +171,6 @@ function SelectItem(newIndex) {
     if(newIndex >= $list.children().length || newIndex < 0)
         return
 
-    $list = $( "#SelectionList" )
-
-    console.log($list.children())
     if(selected < $list.children().length)
         $($list.children()[selected]).removeClass("active");
 
@@ -186,8 +181,6 @@ function SelectItem(newIndex) {
 
 function ProcessItems() {
     $list.empty();
-
-    // TODO: If 0 results show message
 
     if(items.length == 0) {
         $list.html(empty)
