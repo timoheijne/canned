@@ -110,8 +110,17 @@ ipcMain.on('update-snippet', async (event, args) => {
   mainWindow.webContents.send("reload-query")
 });
 
-ipcMain.on('delete-snippet', (event, args) => {
+ipcMain.on('delete-snippet', async (event, args) => {
   // Query the database, send back results
+
+  console.log(args)
+  await db.snippet.destroy({
+    where: {
+      id: args.id 
+    }
+  });
+
+  mainWindow.webContents.send("reload-query")
 });
 
 ipcMain.on('close-window', (event, args) => {

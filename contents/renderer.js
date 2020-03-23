@@ -1,5 +1,6 @@
 const ipc = require('electron').ipcRenderer; 
 const template = "<a href=\"#\" class=\"list-group-item list-group-item-action\">  <div class=\"d-flex w-100 justify-content-between\"> <h6 class=\"mb-1\" id=\"Name\">Past due plugin installation <small id=\"Alias\">Alias 1, alias 2</small></h6> </div> <p class=\"mb-1\" id=\"Body\">Nam eget mi lacus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus vehicula urna augue, at semper metus rhoncus sed. Morbi sit amet leo vel libero luctus ornare ut non quam.</p> </a>";
+const empty = "<div class=\"d-flex justify-content-center\" style=\"width: 100%; margin-top: 100px;\"><div class=\"p-2\" style=\"font-size: 40px;\">¯\\_(ツ)_/¯</div> </div><div class=\"d-flex justify-content-center\" style=\"width: 100%;\"><div class=\"p-3\" style=\"font-size: 15px;\" id=\"enter-to-create\">Press ENTER to create a snippet with the name \"\"</div></div>"
 let $list = $( "#SelectionList" );
 
 let selected = 0;
@@ -19,6 +20,13 @@ function handleInput(event) {
     console.log(event)
     if(event.keyCode == 13) { // enter pressed
         // if modal is open, enter should be handled differently!
+
+        if(($('#delete-snippet').data('bs.modal') || {})._isShown) {
+            // Process Delete
+            OnDelete()
+            return;
+        }
+
         if(IsModalOpen())
             return
 
@@ -57,6 +65,8 @@ function handleInput(event) {
         }
 
         CloseModals();
+    } else if (event.keyCode == 68 && event.ctrlKey) {
+        OpenDelete();
     } else if (event.keyCode == 40 && !IsModalOpen()) {
         SelectItem(selected + 1)
     } else if (event.keyCode == 38 && !IsModalOpen()) {
@@ -65,11 +75,14 @@ function handleInput(event) {
 }
 
 function IsModalOpen() {
-    return ($('#create-snippet').data('bs.modal') || {})._isShown || ($('#edit-snippet').data('bs.modal') || {})._isShown
+    return ($('#create-snippet').data('bs.modal') || {})._isShown || ($('#edit-snippet').data('bs.modal') || {})._isShown || ($('#delete-snippet').data('bs.modal') || {})._isShown
 }
 
 function ProcessSearch(e) {
     if(e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 17 || e.ctrlKey)
+        return;
+
+    if(IsModalOpen())
         return;
 
     let reply = ipc.send('process-query', $("#query-field").val());
@@ -78,6 +91,7 @@ function ProcessSearch(e) {
 function CloseModals() {
     $('#create-snippet').modal("hide")
     $('#edit-snippet').modal("hide")
+    $('#delete-snippet').modal("hide")
 
     $("#query-field").focus();
 }
@@ -88,6 +102,10 @@ $('#create-snippet').on('shown.bs.modal', function (e) {
 
 $('#edit-snippet').on('shown.bs.modal', function (e) {
     $("#edit-name").trigger("focus");
+})
+
+$('#delete-snippet').on('shown.bs.modal', function (e) {
+    $("#delete-confirm").trigger("focus");
 })
 
 function OpenCreate(text = "") {
@@ -107,6 +125,8 @@ function OnCreate(e) {
 }
 
 function OpenEdit(item) {
+    if(items.length == 0) return;
+    
     $('#edit-snippet').modal('show')
 
     $("#edit-name").val(items[selected].name);
@@ -122,8 +142,19 @@ function OnEdit(e) {
     CloseModals()
 }
 
-function DeleteItem(item) {
-    
+function OpenDelete() {
+    if(items.length == 0) return;
+
+    $('#delete-snippet').modal('show')
+
+    $('#delete-confirm').val("");
+}
+
+function OnDelete(event) {
+    if($('#delete-confirm').val() == "DELETE") {
+        let reply = ipc.send('delete-snippet', items[selected]);
+        CloseModals();
+    }
 }
 
 function CreateDomElement(item) {
@@ -158,11 +189,22 @@ function ProcessItems() {
 
     // TODO: If 0 results show message
 
-    items.forEach(item => {
-        CreateDomElement(item);
-    })
+    if(items.length == 0) {
+        $list.html(empty)
+        if($("#query-field").val().length > 0) {
+            $("#enter-to-create").html(`Press ENTER to create a snippet with the name "${$("#query-field").val()}"`)
+        } else {
+            $("#enter-to-create").html(`Empty here :(`)
+        }
+    } else {
+        items.forEach(item => {
+            CreateDomElement(item);
+        })
+        
+        SelectItem(0)
+    }
+
     
-    SelectItem(0)
     $("#query-field").focus();
 }
 
