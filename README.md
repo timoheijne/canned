@@ -15,3 +15,10 @@ Auto pasting without losing your previous clipboard.
 | ctrl + D   	| Delete selected snippet            	|
 | Enter      	| Auto paste selected snipper        	|
 | ctrl + C   	| Copy selected snippet to clipboard 	|
+
+## TODO
+
+- [ ] Clean up code
+- [ ] Customizable Key Binds
+- [ ] Dark theme!!!!
+- [ ] Import/Export canned responses

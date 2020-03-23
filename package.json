@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-packager . Canned --overwrite --platform=win32 --prune=true --arch=x64 --out=builds"
+    "build:windows": "electron-packager . Canned --overwrite --platform=win32 --prune=true --arch=x64 --out=builds",
+    "build:mac": "electron-packager . Canned --overwrite --platform=darwin --prune=true --arch=x64 --out=builds",
+    "build:linux": "electron-packager . Canned --overwrite --platform=linux --prune=true --arch=x64 --out=builds"
   },
   "repository": "https://github.com/electron/electron-quick-start",
   "keywords": [
