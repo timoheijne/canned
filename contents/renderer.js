@@ -4,13 +4,7 @@ let $list = $( "#SelectionList" );
 
 let selected = 0;
 
-let items = [
-    {id: 0, name: "Test", body: "Test", aliases: ""},
-    {id: 0, name: "Test 1", body: "Test", aliases: ""},
-    {id: 0, name: "Test 2", body: "Test", aliases: ""},
-    {id: 0, name: "Test 2", body: "Test", aliases: ""},
-    {id: 0, name: "Test 2", body: "Test", aliases: ""},
-]
+let items = []
 
 ipc.on("list-items", (event, args) => {
     items = args;
@@ -161,6 +155,8 @@ function SelectItem(newIndex) {
 
 function ProcessItems() {
     $list.empty();
+
+    // TODO: If 0 results show message
 
     items.forEach(item => {
         CreateDomElement(item);

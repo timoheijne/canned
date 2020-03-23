@@ -187,7 +187,7 @@ function pasteText(text) {
 
   clipboard.writeText(text.replace(/\\n/g, "\n"));
 
-  ks.sendCombination(['control', 'v']).then(done => {
+  ks.sendCombination([process.platform === 'darwin' ? 'command' : 'control', 'v']).then(done => {
     // restore clipbloard
     clipboard.writeText(curClip)
   })
