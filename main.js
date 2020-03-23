@@ -4,7 +4,6 @@ const {app, BrowserWindow, globalShortcut, ipcMain } = require('electron')
 const path = require('path')
 const { clipboard } = require('electron')
 const ks = require('node-key-sender');
-const decode = require('unescape');
 const db = require("./database")
 const { Op } = require("sequelize");
 
@@ -187,6 +186,7 @@ function pasteText(text) {
   let curClip = clipboard.readText();
 
   clipboard.writeText(text.replace(/\\n/g, "\n"));
+
   ks.sendCombination(['control', 'v']).then(done => {
     // restore clipbloard
     clipboard.writeText(curClip)

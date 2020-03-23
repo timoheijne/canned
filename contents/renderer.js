@@ -31,7 +31,7 @@ function handleInput(event) {
         if(items.length > 0) {
             let reply = ipc.send('paste-snippet', items[selected]);
         } else {
-            OpenCreate("INSERT CURRENT QUERY FIELD!!!")
+            OpenCreate($("#query-field").val())
         }
 
         $("#query-field").val("")
@@ -52,6 +52,17 @@ function handleInput(event) {
         OpenCreate()
     } else if (event.keyCode == 69 && event.ctrlKey) {
         OpenEdit(items[selected])
+    } else if (event.keyCode == 83 && event.ctrlKey) {
+        // Save button hit
+
+        if( ($('#create-snippet').data('bs.modal') || {})._isShown ) {
+            // Create snippet
+            OnCreate();
+        } else if ( ($('#edit-snippet').data('bs.modal') || {})._isShown) {
+            OnEdit();
+        }
+
+        CloseModals();
     } else if (event.keyCode == 40 && !IsModalOpen()) {
         SelectItem(selected + 1)
     } else if (event.keyCode == 38 && !IsModalOpen()) {
@@ -86,6 +97,8 @@ $('#edit-snippet').on('shown.bs.modal', function (e) {
 })
 
 function OpenCreate(text = "") {
+    $("#create-name").val(text)
+    $("#create-body").val("")
     $('#create-snippet').modal('show')
 }
 
