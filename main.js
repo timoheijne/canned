@@ -4,15 +4,9 @@ const {app, BrowserWindow, globalShortcut, ipcMain } = require('electron')
 const path = require('path')
 const { clipboard } = require('electron')
 const ks = require('node-key-sender');
-
+const decode = require('unescape');
 const db = require("./database")
-
-
-// setTimeout(() => {
-//   db.snippet.create({name: "Test2"})
-//   db.snippet.create({name: "Test3"})
-// }, 2000)
-
+const { Op } = require("sequelize");
 
 let mainWindow
 
@@ -20,7 +14,7 @@ app.on('ready', () => {
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 600,
-    show: true,
+    show: false,
     resizable: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -29,13 +23,13 @@ app.on('ready', () => {
     },
     
   })
-  
+
+  mainWindow.on('hide', function () {
+    SendTopUsed()
+  })
+
   // and load the index.html of the app.
   mainWindow.loadFile('contents/index.html')
-
-  mainWindow.on('show', function () {
-    console.log("test")
-  })
   
   // Register a 'CommandOrControl+X' shortcut listener.
   const ret = globalShortcut.register('alt+C', () => {
@@ -46,6 +40,9 @@ app.on('ready', () => {
     console.log('registration failed')
   }
 
+  setTimeout(() => {
+    SendTopUsed()
+  }, 500)
 })
 
 app.on('will-quit', () => {
@@ -64,7 +61,6 @@ app.on('window-all-closed', function () {
 })
 
 
-
 ipcMain.on('paste-snippet', (event, args) => {
   MinimizeWindow();
   pasteText(args.body);  
@@ -75,8 +71,28 @@ ipcMain.on('copy-snippet', (event, args) => {
   copyToClip(args.body);  
 });
 
-ipcMain.on('process-query', (event, args) => {
+ipcMain.on('process-query', async (event, args) => {
   // Query the database, send back results
+  if(args.length > 0) {
+
+    let data;
+    if(args[0] == "#" && args.length > 1) {
+      data = await SearchId(args.substring(1))
+    } else if (args[0] == "@" && args.length > 1) {
+      data = await SearchBody(args.substring(1))
+    } else {
+      data = await SearchName(args.substring(1))
+    }
+  
+    let snips = [];
+    data.forEach(snip => {
+      snips.push({id: snip.id, name: snip.name, body: snip.body, uses: snip.uses})
+    })
+  
+    mainWindow.webContents.send("list-items", snips)
+  } else {
+    SendTopUsed()
+  }
 });
 
 ipcMain.on('create-snippet', (event, args) => {
@@ -96,19 +112,74 @@ ipcMain.on('close-window', (event, args) => {
   MinimizeWindow();
 });
 
+async function SearchName(name) {
+  let data = await db.snippet.findAll({
+    where: {
+      name: {
+        [Op.like]: `%${name}%`
+      }
+    },
+    attributes: ['id', 'name', 'body', 'uses']
+  });
+
+  return data;
+}
+
+async function SearchId(id) {
+  let data = await db.snippet.findAll({
+    where: {
+      id: id
+    },
+    attributes: ['id', 'name', 'body', 'uses']
+  });
+
+  return data;
+}
+
+async function SearchBody(text) {
+  let data = await db.snippet.findAll({
+    where: {
+      body: {
+        [Op.like]: `%${text}%`
+      }
+    },
+    attributes: ['id', 'name', 'body', 'uses']
+  });
+
+  return data;
+}
+
+async function SendTopUsed() {
+  let data = await db.snippet.findAll({
+    limit: 10,
+    order: [
+        ['uses', 'DESC'],
+        ['id', 'ASC'],
+    ],
+    attributes: ['id', 'name', 'body', 'uses']
+  });
+
+  let snips = [];
+  data.forEach(snip => {
+    snips.push({id: snip.id, name: snip.name, body: snip.body, uses: snip.uses})
+  })
+
+  mainWindow.webContents.send("list-items", snips)
+}
+
 function MinimizeWindow() {
   mainWindow.minimize();
   mainWindow.hide();
 }
 
 function copyToClip(text) {
-  clipboard.writeText(text);
+  clipboard.writeText(text.replace(/\\n/g, "\n"));
 }
 
 function pasteText(text) {
   let curClip = clipboard.readText();
 
-  clipboard.writeText(text);
+  clipboard.writeText(text.replace(/\\n/g, "\n"));
   ks.sendCombination(['control', 'v']).then(done => {
     // restore clipbloard
     clipboard.writeText(curClip)

@@ -13,8 +13,7 @@ let items = [
 ]
 
 ipc.on("list-items", (event, args) => {
-    console.log(args)
-
+    items = args;
     ProcessItems();
 })
 
@@ -22,7 +21,7 @@ function handleInput(event) {
     console.log(event)
     if(event.keyCode == 13) { // enter pressed
         // if modal is open, enter should be handled differently!
-        if(($('#create-snippet').data('bs.modal') || {})._isShown || ($('#edit-snippet').data('bs.modal') || {})._isShown)
+        if(IsModalOpen())
             return
 
         if(items.length > 0) {
@@ -30,27 +29,41 @@ function handleInput(event) {
         } else {
             OpenCreate("INSERT CURRENT QUERY FIELD!!!")
         }
-        
-        // TODO: Clear input
+
+        $("#query-field").val("")
+
     } else if (event.keyCode == 27) { // esc pressed
-        if(($('#create-snippet').data('bs.modal') || {})._isShown || ($('#edit-snippet').data('bs.modal') || {})._isShown) {
+        if(IsModalOpen()) {
             CloseModals()
         } else {
             let reply = ipc.send('close-window');
-            // TODO: Clear input
+            $("#query-field").val("")
         }
+        
     } else if (event.keyCode == 67 && event.ctrlKey) { // ctrl+C pressed
         let reply = ipc.send('copy-snippet', items[selected]);
-        // TODO: Clear input
+        $("#query-field").val("")
+
     } else if (event.keyCode == 78 && event.ctrlKey) { // ctrl+N pressed
         OpenCreate()
     } else if (event.keyCode == 69 && event.ctrlKey) {
         OpenEdit(items[selected])
-    } else if (event.keyCode == 40) {
+    } else if (event.keyCode == 40 && !IsModalOpen()) {
         SelectItem(selected + 1)
-    } else if (event.keyCode == 38) {
+    } else if (event.keyCode == 38 && !IsModalOpen()) {
         SelectItem(selected - 1)
     }
+}
+
+function IsModalOpen() {
+    return ($('#create-snippet').data('bs.modal') || {})._isShown || ($('#edit-snippet').data('bs.modal') || {})._isShown
+}
+
+function ProcessSearch(e) {
+    if(e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 17 || e.ctrlKey)
+        return;
+
+    let reply = ipc.send('process-query', $("#query-field").val());
 }
 
 function CloseModals() {
@@ -104,8 +117,8 @@ function DeleteItem(item) {
 
 function CreateDomElement(item) {
     html = $.parseHTML( template );
-    $(html).find("#Name").html(`#${item.id} - ${item.name} <small>${item.aliases}</small>`)
-    $(html).find("#Body").html(item.body)
+    $(html).find("#Name").html(`#${item.id} - ${item.name}`)
+    $(html).find("#Body").text(item.body)
     $list.append( html );
 }
 
@@ -121,7 +134,7 @@ function SelectItem(newIndex) {
 
     selected = newIndex;
     $($list.children()[selected]).addClass("active");
-
+    $list.children()[selected].scrollIntoView(false);
 }
 
 function ProcessItems() {
@@ -132,8 +145,7 @@ function ProcessItems() {
     })
     
     SelectItem(0)
+    $("#query-field").focus();
 }
-
-ProcessItems();
 
 window.addEventListener('keydown', handleInput, true)
