@@ -8,6 +8,7 @@ Auto pasting without losing your previous clipboard.
 | Key Bind   	| Action                             	|
 |------------	|------------------------------------	|
 | alt+c      	| Bring up the tool                  	|
+| Esc      	    | Close the tool                      	|
 | Arrow Down 	| Select next item                   	|
 | Arrow Up   	| Select Previous Item               	|
 | ctrl + N   	| Create new snippet                 	|
@@ -21,4 +22,6 @@ Auto pasting without losing your previous clipboard.
 - [ ] Clean up code
 - [ ] Customizable Key Binds
 - [ ] Dark theme!!!!
-- [ ] Import/Export canned responses
+- [ ] Profiles
+- [ ] Favourite certain snippets
+- [ ] Import/Export canned snippets
